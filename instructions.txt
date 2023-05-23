@@ -1,0 +1,51 @@
+1. docker exec -it  instructions-postgres-1  bash      
+2. psql -h localhost -p 5432 -U process_trending -d brx1
+3. psql -h localhost -p 5433 -U process_trending -d brx1
+3. \dt 
+
+
+# syntax=docker/dockerfile:1.4
+FROM ubuntu:22.04
+
+# Install OS-level packages
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get --yes upgrade && \
+    apt-get -y install sudo && \
+    apt-get --yes install --no-install-recommends && \
+    apt-get install -y postgresql-client \
+    python3.10-full tini build-essential 
+
+# Create and activate virtual environment
+ENV VIRTUAL_ENV="/root/.venv"
+RUN python3.10 -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN apt-get update && apt-get install -y python3
+# Update pip
+RUN pip install --upgrade pip setuptools wheel
+
+# Setup root home directory
+WORKDIR /root/take_home_project
+
+# Install package
+# COPY backend /root/take_home_project/
+COPY . .
+COPY backend/bruh.py .
+RUN pip install . --requirement requirements.txt
+
+#Install React 
+FROM node:17-alpine
+WORKDIR /root/take_home_project
+COPY frontend/dashboard/package.json /root/take_home_project/
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm" , "start"]
+
+RUN apk add --no-cache tini
+
+ENTRYPOINT ["tini", "-v", "--"]
+# EXPOSE 5000
+# RUN psql -h localhost -p 5432 -U process_trending -d brx1
+# RUN python3 backend/app.py

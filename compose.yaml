@@ -1,0 +1,30 @@
+services:
+  app:      #first variable defined in services
+    build: .      #Docker image for the "app" service should be built from the current directory
+    volumes:
+      - ./:/root/take_home_project      #This mounts the current directory as a volume inside the container at the path "/root/take_home_project"
+    command: ["python3" , "backend/app.py"]
+    ports:
+      - "5400:5400" #port number
+    env_file:
+      - ./local.env 
+  frontend-app:      #first variable defined in services
+    build: .      #Docker image for the "app" service should be built from the current directory
+    volumes:
+      - ./:/root/take_home_project      #This mounts the current directory as a volume inside the container at the path "/root/take_home_project"
+    command: ["npm" , "start"]
+    ports:
+      - "3000:3000" #port number
+    env_file:
+      - ./local.env              
+  postgres:       #second variable defined in the services
+    image: postgres:15.2 #postgres version being used 
+    expose:
+      - "5432" # Publishes 5432 to other containers but NOT to host machine
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    env_file:
+      - ./local.env
+    command: -p 5432
